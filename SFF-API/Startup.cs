@@ -11,6 +11,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
+using Microsoft.EntityFrameworkCore;
+using SFF_API.Context;
+
 namespace SFF_API
 {
     public class Startup
@@ -25,6 +28,9 @@ namespace SFF_API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            string dbName = "sff.db";
+            services.AddDbContext<SFFEntitiesContext>(opt => opt.UseSqlite($"Data Source={dbName}"));
+
             services.AddControllers();
         }
 
