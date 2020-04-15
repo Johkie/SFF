@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
-VisualStudioVersion = 16.0.29728.190
+VisualStudioVersion = 16.0.30011.22
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "SFF-API", "SFF-API.fsproj", "{8FBC5066-CC7F-4470-AC69-7306AA4E9974}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SFF-API", "SFF-API.csproj", "{4FEE3DBE-1826-4194-B2F3-46DE2577A891}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{8FBC5066-CC7F-4470-AC69-7306AA4E9974}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8FBC5066-CC7F-4470-AC69-7306AA4E9974}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8FBC5066-CC7F-4470-AC69-7306AA4E9974}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8FBC5066-CC7F-4470-AC69-7306AA4E9974}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4FEE3DBE-1826-4194-B2F3-46DE2577A891}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4FEE3DBE-1826-4194-B2F3-46DE2577A891}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4FEE3DBE-1826-4194-B2F3-46DE2577A891}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4FEE3DBE-1826-4194-B2F3-46DE2577A891}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {971D6616-1333-4DBF-B7E1-D96A62FAEE5C}
+		SolutionGuid = {49A5DDD8-9C2A-4004-9CFC-A864EA0D4BA3}
 	EndGlobalSection
 EndGlobal
