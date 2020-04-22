@@ -37,61 +37,6 @@ namespace SFF_API.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "MovieRatings",
-                columns: table => new
-                {
-                    Id = table.Column<int>(nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    FilmClubModelId = table.Column<int>(nullable: false),
-                    MovieModelId = table.Column<int>(nullable: false),
-                    Rating = table.Column<int>(nullable: false),
-                    Comment = table.Column<string>(nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_MovieRatings", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_MovieRatings_FilmClubs_FilmClubModelId",
-                        column: x => x.FilmClubModelId,
-                        principalTable: "FilmClubs",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_MovieRatings_Movies_MovieModelId",
-                        column: x => x.MovieModelId,
-                        principalTable: "Movies",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "MovieTrivias",
-                columns: table => new
-                {
-                    Id = table.Column<int>(nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    FilmClubModelId = table.Column<int>(nullable: false),
-                    MovieModelId = table.Column<int>(nullable: false),
-                    Trivia = table.Column<string>(nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_MovieTrivias", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_MovieTrivias_FilmClubs_FilmClubModelId",
-                        column: x => x.FilmClubModelId,
-                        principalTable: "FilmClubs",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_MovieTrivias_Movies_MovieModelId",
-                        column: x => x.MovieModelId,
-                        principalTable: "Movies",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "RentalLog",
                 columns: table => new
                 {
@@ -99,7 +44,7 @@ namespace SFF_API.Migrations
                         .Annotation("Sqlite:Autoincrement", true),
                     FilmClubModelId = table.Column<int>(nullable: false),
                     MovieModelId = table.Column<int>(nullable: false),
-                    RentalTime = table.Column<DateTime>(nullable: false),
+                    RentalDate = table.Column<DateTime>(nullable: false),
                     RentalActive = table.Column<bool>(nullable: false)
                 },
                 constraints: table =>
@@ -119,6 +64,75 @@ namespace SFF_API.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "MovieRatings",
+                columns: table => new
+                {
+                    Id = table.Column<int>(nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    FilmClubModelId = table.Column<int>(nullable: false),
+                    MovieModelId = table.Column<int>(nullable: false),
+                    RentalModelId = table.Column<int>(nullable: false),
+                    Rating = table.Column<int>(nullable: false),
+                    Comment = table.Column<string>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MovieRatings", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_MovieRatings_FilmClubs_FilmClubModelId",
+                        column: x => x.FilmClubModelId,
+                        principalTable: "FilmClubs",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_MovieRatings_Movies_MovieModelId",
+                        column: x => x.MovieModelId,
+                        principalTable: "Movies",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_MovieRatings_RentalLog_RentalModelId",
+                        column: x => x.RentalModelId,
+                        principalTable: "RentalLog",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "MovieTrivias",
+                columns: table => new
+                {
+                    Id = table.Column<int>(nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    FilmClubModelId = table.Column<int>(nullable: false),
+                    MovieModelId = table.Column<int>(nullable: false),
+                    RentalModelId = table.Column<int>(nullable: false),
+                    Trivia = table.Column<string>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MovieTrivias", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_MovieTrivias_FilmClubs_FilmClubModelId",
+                        column: x => x.FilmClubModelId,
+                        principalTable: "FilmClubs",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_MovieTrivias_Movies_MovieModelId",
+                        column: x => x.MovieModelId,
+                        principalTable: "Movies",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_MovieTrivias_RentalLog_RentalModelId",
+                        column: x => x.RentalModelId,
+                        principalTable: "RentalLog",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_MovieRatings_FilmClubModelId",
                 table: "MovieRatings",
@@ -130,6 +144,12 @@ namespace SFF_API.Migrations
                 column: "MovieModelId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_MovieRatings_RentalModelId",
+                table: "MovieRatings",
+                column: "RentalModelId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_MovieTrivias_FilmClubModelId",
                 table: "MovieTrivias",
                 column: "FilmClubModelId");
@@ -138,6 +158,12 @@ namespace SFF_API.Migrations
                 name: "IX_MovieTrivias_MovieModelId",
                 table: "MovieTrivias",
                 column: "MovieModelId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MovieTrivias_RentalModelId",
+                table: "MovieTrivias",
+                column: "RentalModelId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_RentalLog_FilmClubModelId",

@@ -22,24 +22,16 @@ namespace SFF_API.Models
         public ICollection<RatingModel> Ratings { get; set; } = new List<RatingModel>();
         public ICollection<TriviaModel> Trivias { get; set; } = new List<TriviaModel>();
 
-        public class ErrorCode : IMovieModel
-        {
-            public string Title { get; set; }
-            public int StatusCode { get; set; }
-        }
+        //public class ErrorCode : IMovieModel
+        //{
+        //    public string Title { get; set; }
+        //    public int StatusCode { get; set; }
+        //}
 
-        public class StatusCode : IMovieModel
-        {
-            public MovieModel Movie { get; set; }
-            public string Status { get; set; }
-        }
-    }
-
-    public class GenreModel
-    {
-        public const string Action = "Action";
-        public const string Adventure = "Adventure";
-        public const string Thriller = "Thriller";
-        public const string Drama = "Drama";
+        //public class StatusCode : IMovieModel
+        //{
+        //    public MovieModel Movie { get; set; }
+        //    public string Status { get; set; }
+        //}
     }
 }

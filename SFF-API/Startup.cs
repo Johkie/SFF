@@ -13,6 +13,8 @@ using Microsoft.Extensions.Logging;
 
 using Microsoft.EntityFrameworkCore;
 using SFF_API.Context;
+using SFF_API.Services;
+using Microsoft.AspNetCore.Mvc.Formatters;
 
 namespace SFF_API
 {
@@ -31,7 +33,13 @@ namespace SFF_API
             string dbName = "sff.db";
             services.AddDbContext<SFFEntitiesContext>(opt => opt.UseSqlite($"Data Source={dbName}"));
 
-            services.AddControllers();
+            services.AddScoped<ILabelService, LabelService>();
+            services.AddScoped<IMovieService, MovieService>();
+            services.AddScoped<IFilmClubService, FilmClubService>();
+            services.AddScoped<IRentalService, RentalService>();
+            services.AddScoped<IReviewService, ReviewService>();
+
+            services.AddControllers().AddXmlSerializerFormatters();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -52,6 +60,7 @@ namespace SFF_API
             {
                 endpoints.MapControllers();
             });
+
         }
     }
 }

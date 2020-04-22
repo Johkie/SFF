@@ -9,9 +9,12 @@ namespace SFF_API.Models
     {
         public int Id { get; set; }
         public int FilmClubModelId { get; set; }
+        public FilmClubModel FilmClub { get; set; }
         public int MovieModelId { get; set; }
         public MovieModel Movie { get; set; }
-        public DateTime RentalTime { get; set; }
+        public DateTime RentalDate { get; set; }
         public bool RentalActive { get; set; }
+        public RatingModel Rating { get; set; }
+        public TriviaModel Trivia { get; set; }
     }
 }

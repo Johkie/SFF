@@ -9,8 +9,8 @@ using SFF_API.Context;
 namespace SFF_API.Migrations
 {
     [DbContext(typeof(SFFEntitiesContext))]
-    [Migration("20200419144127_Init")]
-    partial class Init
+    [Migration("20200422200237_restrictions")]
+    partial class restrictions
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -73,11 +73,17 @@ namespace SFF_API.Migrations
                     b.Property<int>("Rating")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("RentalModelId")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("Id");
 
                     b.HasIndex("FilmClubModelId");
 
                     b.HasIndex("MovieModelId");
+
+                    b.HasIndex("RentalModelId")
+                        .IsUnique();
 
                     b.ToTable("MovieRatings");
                 });
@@ -97,7 +103,7 @@ namespace SFF_API.Migrations
                     b.Property<bool>("RentalActive")
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTime>("RentalTime")
+                    b.Property<DateTime>("RentalDate")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -121,6 +127,9 @@ namespace SFF_API.Migrations
                     b.Property<int>("MovieModelId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("RentalModelId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Trivia")
                         .HasColumnType("TEXT");
 
@@ -129,6 +138,9 @@ namespace SFF_API.Migrations
                     b.HasIndex("FilmClubModelId");
 
                     b.HasIndex("MovieModelId");
+
+                    b.HasIndex("RentalModelId")
+                        .IsUnique();
 
                     b.ToTable("MovieTrivias");
                 });
@@ -146,11 +158,17 @@ namespace SFF_API.Migrations
                         .HasForeignKey("MovieModelId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("SFF_API.Models.RentalModel", "Rental")
+                        .WithOne("Rating")
+                        .HasForeignKey("SFF_API.Models.RatingModel", "RentalModelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("SFF_API.Models.RentalModel", b =>
                 {
-                    b.HasOne("SFF_API.Models.FilmClubModel", null)
+                    b.HasOne("SFF_API.Models.FilmClubModel", "FilmClub")
                         .WithMany("Rentals")
                         .HasForeignKey("FilmClubModelId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -174,6 +192,12 @@ namespace SFF_API.Migrations
                     b.HasOne("SFF_API.Models.MovieModel", null)
                         .WithMany("Trivias")
                         .HasForeignKey("MovieModelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SFF_API.Models.RentalModel", "Rental")
+                        .WithOne("Trivia")
+                        .HasForeignKey("SFF_API.Models.TriviaModel", "RentalModelId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

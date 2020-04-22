@@ -4,89 +4,93 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using SFF_API.Models;
-using SFF_API.Context;
 using Microsoft.EntityFrameworkCore;
+
+using SFF_API.Models;
+using SFF_API.Models.DTO;
+using SFF_API.Services;
 
 namespace SFF_API.Controllers
 {
-    [Route("api/{filmClubId}/rentals")]
+    [Route("api/rentals/")]
     [ApiController]
     public class RentalController : ControllerBase
     {
-        private readonly SFFEntitiesContext _context;
+        private readonly IRentalService _rentalService;
 
-        public RentalController(SFFEntitiesContext context)
+        public RentalController(IRentalService rentalService)
         {
-            this._context = context;
+            this._rentalService = rentalService;
         }
 
-        [HttpPost("order")]
-        public async Task<ActionResult<RentalModel>> RentalOrder(int filmClubId, RentalModel rental)
+        [HttpPost("order/{filmClubId}/{movieId}")]
+        public async Task<ActionResult<RentalDTO>> RentalMovieOrder(int filmClubId, int movieId)
         {
-            var filmClub = await _context.FilmClubs.FindAsync(filmClubId);
-
-            rental.Movie = await _context.Movies.FindAsync(rental.MovieModelId);
-            rental.RentalActive = true;
-
-            filmClub.Rentals.Add(rental);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetRental), new { id = rental.Id }, rental); ;
+            try
+            {
+                var rentalOrder = await _rentalService.AddRentalOrderToDatabase(filmClubId, movieId);
+                return CreatedAtAction(nameof(GetRental), new { rentalId = rentalOrder.Id }, rentalOrder.ToDto());
+            }
+            catch(Exception e)
+            {
+                return BadRequest(new { title = e.Message, BadRequest().StatusCode });
+            }
         }
 
-        [HttpGet("available")]
-        public async Task<ActionResult<IEnumerable<MovieModel>>> GetAvailableMoviesForRent(int filmClubId)
+        [HttpPut("{rentalId}/return")]
+        public async Task<ActionResult<RentalDTO>> ReturnMovieOrder(int rentalId)
         {
-            var filmCLubRentals = await _context.FilmClubs
-                .Include(r => r.Rentals)
-                .Where(f => f.Id == filmClubId)
-                .SelectMany(r => r.Rentals)
-                .Where(m => m.RentalActive == true)
-                .Select(m => m.Movie)
-                .ToListAsync();
-            
-            var rentalList = await _context.RentalLog
-                .Where(r => r.RentalActive == true)
-                .GroupBy(r => r.MovieModelId )
-                .Select(m => new { Id = m.Key, Count = m.Count() })
-                .ToListAsync();
-
-            var allMovies = await _context.Movies.ToListAsync();
-
-            var unAvailableMovies = allMovies
-                .Where(m =>
-                    rentalList.Any(r =>
-                        r.Id == m.Id && r.Count >= m.RentalLimit))
-                .Union(filmCLubRentals)
-                .ToList();
-
-            var availableMovies = allMovies.Except(unAvailableMovies).Except(filmCLubRentals).ToList();
-
-            return Ok(availableMovies);
+            try
+            {
+                var result = await _rentalService.MarkRentalAsReturnedFromId(rentalId);
+                return Ok( new { rental = result.ToDto(), status = "Rental has been succesfully marked as returned" });
+            }
+            catch(Exception e)
+            {
+                return BadRequest(new { title = e.Message, BadRequest().StatusCode });
+            }
         }
 
-        // Get all trivia for movie ".../api/reviews/trivias/1"
-        [HttpGet("order/{id}")]
-        public async Task<ActionResult<IEnumerable<RatingModel>>> GetRental(int id)
+        [HttpGet("{filmClubId}/available")]
+        public async Task<ActionResult<IEnumerable<MovieDTO>>> GetAvailableMoviesForRent(int filmClubId)
         {
-            var rental = await _context.RentalLog.FindAsync(id);
-
-            return Ok(rental);
+            try
+            {
+                var movies = await _rentalService.GetMoviesAvailableForRentalFromFilmclubId(filmClubId);
+                return Ok(movies.ToDtoList(false));
+            }
+            catch(Exception e)
+            {
+                return BadRequest(new { title = e.Message, BadRequest().StatusCode });
+            }
         }
 
-        // Delete a trivia by id ".../api/reviews/trivias/1"
-        [HttpDelete("trivias/{id}")]
-        public async Task<ActionResult<RatingModel>> DeleteTrivia(int id)
+        [HttpGet("{rentalId}")]
+        public async Task<ActionResult<IEnumerable<RentalDTO>>> GetRental(int rentalId)
         {
-            var review = await _context.MovieTrivias.FindAsync(id);
-
-            _context.MovieTrivias.Remove(review);
-            await _context.SaveChangesAsync();
-
-            return Ok(review);
+            try
+            {
+                var rentalOrder = await _rentalService.GetRentalFromId(rentalId);
+                return Ok(rentalOrder.ToDto());
+            }
+            catch (Exception e)
+            {
+                return NotFound(new { title = e.Message, NotFound().StatusCode });
+            }
         }
 
-
+        [HttpDelete("{rentalId}")]
+        public async Task<ActionResult<RentalDTO>> DeleteRental(int rentalId)
+        {
+            try
+            {
+                var result = await _rentalService.DeleteRentalFromDatabaseById(rentalId);
+                return Ok(new { rental = result.ToDto(), status = "Succesfully deleted" });
+            }
+            catch
+            {
+                return NotFound();
+            }
+        }
     }
 }

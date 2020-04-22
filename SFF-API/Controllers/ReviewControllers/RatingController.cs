@@ -4,61 +4,65 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using SFF_API.Models;
-using SFF_API.Context;
 using Microsoft.EntityFrameworkCore;
+
+using SFF_API.Models;
+using SFF_API.Models.DTO;
+using SFF_API.Services;
 
 namespace SFF_API.Controllers
 {
-    [Route("api/reviews")]
+    [Route("api/reviews/ratings")]
     [ApiController]
     public class RatingController : ControllerBase
     {
-        private readonly SFFEntitiesContext _context;
+        private readonly IReviewService _reviewService;
 
-        public RatingController(SFFEntitiesContext context)
+        public RatingController(IReviewService reviewService)
         {
-            this._context = context;
+            this._reviewService = reviewService;
         }
 
-        [HttpPost("ratings/{movieId}/{filmClubId}")]
-        public async Task<ActionResult<RatingModel>> PostRating(int movieId, int filmClubId, RatingModel rating)
+        [HttpPost("rental/{rentalId}")]
+        public async Task<ActionResult<RatingDTO>> AddRating(int rentalId, RatingModel rating)
         {
-            if (!(_context.FilmClubs.Any(f => f.Id == filmClubId)) || !(_context.Movies.Any(f => f.Id == movieId)))
+           try
             {
-                return BadRequest(new MovieModel.ErrorCode { Title = "Filmclub not found", StatusCode = BadRequest().StatusCode });
+                var result = await _reviewService.AddRatingToRentalByIdAsync(rentalId, rating);
+                return CreatedAtAction(nameof(GetRating), new { ratingId = result.Id }, result.ToDto());
             }
-
-            var movie = _context.Movies.Find(movieId);
-            rating.FilmClub = _context.FilmClubs.Find(filmClubId);
-
-            movie.Ratings.Add(rating);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetRating), new { id = rating.Id }, rating);
+            catch(Exception e)
+            {
+                return BadRequest(new { Title = e.Message, BadRequest().StatusCode });
+            }
         }
 
-        // Get a rating by id ".../api/reviews/trivias/1"
-        [HttpGet("ratings/{id}")]
-        public async Task<ActionResult<RatingModel>> GetRating(int id)
+        [HttpGet("{ratingId}")]
+        public async Task<ActionResult<RatingDTO>> GetRating(int ratingId)
         {
-            var rating = await _context.MovieRatings.FindAsync(id);
-
-            return Ok(rating);
+            try
+            {
+                var rating = await _reviewService.GetRatingByIdAsync(ratingId);
+                return Ok(rating.ToDto());
+            }
+            catch (Exception e)
+            {
+                return NotFound(new { Title = e.Message, NotFound().StatusCode });
+            }
         }
 
-        // Delete a rating by id ".../api/reviews/trivias/1"
-        [HttpDelete("ratings/{id}")]
-        public async Task<ActionResult<RatingModel>> DeleteRating(int id)
+        [HttpDelete("{ratingId}")]
+        public async Task<ActionResult<RatingDTO>> DeleteRating(int ratingId)
         {
-            var review = await _context.MovieRatings.FindAsync(id);
-
-            _context.MovieRatings.Remove(review);
-            await _context.SaveChangesAsync();
-
-            return Ok(review);
+            try
+            {
+                var result = await _reviewService.DeleteRatingByIdAsync(ratingId);
+                return Ok(new { trivia = result.ToDto(), status = "Succesfully deleted" });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { Title = e.Message, BadRequest().StatusCode });
+            }
         }
-
-
     }
 }

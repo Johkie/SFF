@@ -4,9 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using SFF_API.Models;
-using SFF_API.Context;
 using Microsoft.EntityFrameworkCore;
+
+using SFF_API.Models;
+using SFF_API.Models.DTO;
+using SFF_API.Services;
 
 namespace SFF_API.Controllers
 {
@@ -14,108 +16,81 @@ namespace SFF_API.Controllers
     [ApiController]
     public class MovieController : ControllerBase
     {
-        private readonly SFFEntitiesContext _context;
+        private readonly IMovieService _movieService;
 
-        public MovieController(SFFEntitiesContext context)
+        public MovieController(IMovieService movieService)
         {
-            this._context = context;
+            this._movieService = movieService;
         }
 
         [HttpPost]
-        public async Task<ActionResult<IMovieModel>> AddMovie(MovieModel movie)
+        public async Task<ActionResult<MovieDTO>> AddMovie(MovieModel movieToAdd)
         {
-            _context.Movies.Add(movie);
-
-            await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetMovie), new { id = movie.Id }, movie);
+            try
+            {
+                var result = await _movieService.AddMovieToDatabase(movieToAdd);
+                return CreatedAtAction(nameof(GetMovie), new { movieId = result.Id }, result.ToDto());
+            }
+            catch
+            {
+                return BadRequest();
+            }
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<MovieModel>>> GetMovies()
+        public async Task<ActionResult<IEnumerable<MovieDTO>>> GetMovies()
         {
-            return await _context.Movies.Include(r => r.Ratings)
-                .Include(r => r.Trivias).ThenInclude(f => f.FilmClub).
-                ToListAsync();
+            try
+            {
+                var movies = await _movieService.GetAllMoviesInDatabase();
+                return Ok(movies.ToDtoList());
+            }
+            catch
+            {
+                return NotFound();
+            }
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<IMovieModel>> GetMovie(int id)
+        [HttpGet("{movieId}")]
+        public async Task<ActionResult<MovieDTO>> GetMovie(int movieId)
         {
-            var movie = await _context.Movies
-                .Include(r => r.Ratings)
-                .Include(r => r.Trivias).ThenInclude(f => f.FilmClub)
-                .FirstAsync(m => m.Id == id);
-
-            // If movie not found
-            if (movie == null) return NotFound(new MovieModel.ErrorCode { Title = "Movie not found", StatusCode = NotFound().StatusCode });
-
-            return Ok(movie);
+            try
+            {
+                var movie = await _movieService.GetMovieById(movieId);
+                return Ok(movie.ToDto());
+            }
+            catch
+            {
+                return NotFound();
+            }
         }
 
-        [HttpDelete("{id}")]
-        public async Task<ActionResult<IMovieModel>> DeleteMovie(int id)
+        [HttpDelete("{movieId}")]
+        public async Task<ActionResult<MovieDTO>> DeleteMovie(int movieId)
         {
-            var movie = await _context.Movies.FindAsync(id);
-
-            if (movie == null) return NotFound(new MovieModel.ErrorCode { Title = "Movie not found", StatusCode = NotFound().StatusCode });
-
-            _context.Movies.Remove(movie);
-            await _context.SaveChangesAsync();
-
-            return Ok(new MovieModel.StatusCode { Movie = movie, Status = "Deleted" });
+            try
+            {
+                var result = await _movieService.DeleteMovieFromDatabaseById(movieId);
+                return Ok(new { movie = result.ToDto(), status = "Sucessfully deleted" });
+            }
+            catch
+            {
+                return NotFound();
+            }
         }
 
-        [HttpPut("{id}")]
-        public async Task<ActionResult<IMovieModel>> ChangeMovieDetails(int id, MovieModel movie)
+        [HttpPut("{movieId}")]
+        public async Task<ActionResult<IMovieModel>> ChangeAllowedMovieRentals(int movieId, MovieModel modifiedMovie)
         {
-            if (id != movie.Id) return BadRequest(new MovieModel.ErrorCode { Title = "Id's doesn't match", StatusCode = BadRequest().StatusCode });
-         
-            _context.Entry(movie).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-
-            return Ok(new MovieModel.StatusCode { Movie = movie, Status = "Information changed" });
-        }
-
-
-        /************************************************************************************************************************/
-        /************************************************************************************************************************/
-
-        // Get all trivia for movie ".../api/reviews/trivias/1"
-        [HttpGet("{id}/reviews/trivia")]
-        public async Task<ActionResult<IEnumerable<TriviaModel>>> GetTriviaForMovie(int id)
-        {
-            var review = await _context.Movies
-                .Include(t => t.Trivias)
-                .FirstAsync(m => m.Id == id);
-                
-            return Ok(review.Trivias);
+            try
+            {
+                var result = await _movieService.ModifyAllowedNumberOfRentalsFor(movieId, modifiedMovie);
+                return Ok(new { movie = result.ToDto(false), status = "Number of allowed rentals sucessfully changed." });
+            }
+            catch
+            {
+                return BadRequest();
+            }
         }
     }
 }
-
-//[HttpDelete("{ids}")]
-//public async Task<ActionResult<IMovieModel>> DeleteMovie(string ids)
-//{
-//    var separatedIds = ids.Split(new char[] { ',' });
-//    List<int> idList = separatedIds.Select(s => int.Parse(s)).ToList();
-
-//    var movies = await _context.Movies.Where(m => idList.Contains(m.Id)).ToListAsync();
-
-//    if (movies.Count == 0)
-//    {
-//        return BadRequest(new MovieModel.ErrorCode { Title = "Movies not found", StatusCode = "400" });
-//    }
-
-//    // Remove movies
-//    _context.Movies.RemoveRange(movies);
-//    await _context.SaveChangesAsync();
-
-//    // Create deleted movies status codes
-//    var deletedMovies = new List<MovieModel.DeletedCode>();
-//    foreach (var movie in movies)
-//    {
-//        deletedMovies.Add(new MovieModel.DeletedCode { Movie= movie, StatusCode = "Deleted" });
-//    }
-
-//    return Ok(deletedMovies);  
-//}
